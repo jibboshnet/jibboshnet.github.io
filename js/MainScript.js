@@ -97,8 +97,24 @@ function setInformation(){
   setTimeout(startAnimation, 1000);
 }
 
-function setMainBackground(){
-  getElement('background-image').style.backgroundImage = 'url(https://picsum.photos/1920/1080/?random';
+const backgroundConfigUrl = "https://jibboshtvfiles.jibbosh.com/config/i2.json";
+
+async function setMainBackground() {
+  try {
+    const response = await fetch(backgroundConfigUrl);
+    if (!response.ok) throw new Error("Failed to load background config");
+
+    const data = await response.json();
+    // Assume your JSON has a property called 'wallpapers' which is an array of URLs
+    // Example: { "wallpapers": ["https://...png", "https://...jpg"] }
+    const wallpapers = data.wallpapers;
+    if (!wallpapers || wallpapers.length === 0) return;
+
+    const index = Math.floor(Math.random() * wallpapers.length);
+    getElement('background-image').style.backgroundImage = 'url(' + wallpapers[index] + ')';
+  } catch (error) {
+    console.error("Error loading background:", error);
+  }
 }
 
 function checkStormMusic(){
