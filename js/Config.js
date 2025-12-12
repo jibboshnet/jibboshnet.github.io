@@ -1,144 +1,105 @@
 window.CONFIG = {
-  crawl: `☁ Welcome to KAOS!!!.... The Intellistar Emulator for Fire TV. ☁`,
-  greeting: 'This is your weather',
-  language: 'en-US', // Supported in TWC API
-  countryCode: 'US', // Supported in TWC API (for postal key)
-  units: 'e', // Supported in TWC API (e = English (imperial), m = Metric, h = Hybrid (UK)),
-  unitField: 'imperial', // Supported in TWC API. This field will be filled in automatically. (imperial = e, metric = m, uk_hybrid = h)
-  loop: false,
-  locationMode: "POSTAL",
+  // Default empty until remote loads
+  crawlOptions: [],
+  crawl: '',
+
+  greetingOptions: [],
+  greeting: '',
+
+  language: 'en-US',
+  countryCode: 'CA',
+  units: 'm',
+  unitField: 'metric',
+  loop: true,
+  locationMode: "AIRPORT",
+
   secrets: {
-    // Possibly deprecated key: See issue #29
-    // twcAPIKey: 'd522aa97197fd864d36b418f39ebb323'
-    //twcAPIKey: '21d8a80b3d6b444998a80b3d6b1449d3'
     twcAPIKey: 'e1f10a1e78da46f5b10a1e78da96f525'
   },
 
-  // Config Functions (index.html settings manager)
-  locationOptions:[],
-  addLocationOption: (id, name, desc) => {
-    CONFIG.locationOptions.push({
-      id,
-      name,
-      desc,
-    })
-  },
+  locationOptions: [],
   options: [],
-  addOption: (id, name, desc) => {
-    CONFIG.options.push({
-      id,
-      name,
-      desc,
-    })
-  },
-  submit: (btn, e) => {
-    let args = {}
-    const currentLoop = (localStorage.getItem('loop') === 'y')
-    CONFIG.locationOptions.forEach((opt) => {
-      args[opt.id] = getElement(`${opt.id}-text`).value
-      args[`${opt.id}-button`] = getElement(`${opt.id}-button`).checked
-      if (!currentLoop) {
-        localStorage.setItem(opt.id, args[opt.id])
-      }
-    })
-    args['countryCode'] = getElement('country-code-text').value
-    if (!currentLoop) {
-      localStorage.setItem('countryCode', args['countryCode'])
-    }
-    CONFIG.options.forEach((opt) => {
-      args[opt.id] = getElement(`${opt.id}-text`).value
-      if (!currentLoop) {
-        localStorage.setItem(opt.id, args[opt.id])
-      }
-    })
-    console.log(args)
-    if (currentLoop) {
-      if (localStorage.getItem('crawlText')) CONFIG.crawl = localStorage.getItem('crawlText')
-      if (localStorage.getItem('greetingText')) CONFIG.greeting = localStorage.getItem('greetingText')
-      if (localStorage.getItem('countryCode')) CONFIG.countryCode = localStorage.getItem('countryCode')
-    } else {
-      if (args.crawlText !== '') CONFIG.crawl = args.crawlText
-      if (args.greetingText !== '') CONFIG.greeting = args.greetingText
-      if (args.countryCode !== '') CONFIG.countryCode = args.countryCode
-      if (args.loop === 'y') CONFIG.loop = true
-    }
-    
-    if (args['airport-code-button']==true){ 
-      CONFIG.locationMode="AIRPORT" 
-      if(args['airport-code'].length==0){
-        alert("Please enter an airport code")
-        return
-      }
-    } 
-    else { 
-      CONFIG.locationMode="POSTAL" 
-      if(!currentLoop && args['zip-code'].length==0){
-        alert("Please enter a postal code")
-        return
-      }
 
-    }
-    
-    zipCode = args['zip-code'] || localStorage.getItem('zip-code')
-    airportCode = args['airport-code'] || localStorage.getItem('airport-code')
-    
-    CONFIG.unitField = CONFIG.units === 'm' ? 'metric' : (CONFIG.units === 'h' ? 'uk_hybrid' : 'imperial')
+  addLocationOption: () => {},
+  addOption: () => {},
+
+  submit: () => {
+    CONFIG.locationMode = "AIRPORT";
+    airportCode = "YQB";
+    zipCode = null;
+
+    CONFIG.unitField = 'metric';
+
+    // Random greeting + crawl from loaded options
+    CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
+    CONFIG.crawl = CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)] || "";
+
     fetchCurrentWeather();
+
+    setTimeout(() => {
+      const forceQC = () => {
+        const t1 = document.getElementById("infobar-location-text");
+        const t2 = document.getElementById("hello-location-text");
+        if (t1) t1.innerText = "Quebec City";
+        if (t2) t2.innerText = "Quebec City";
+      };
+
+      // Run a few times to override TWC updates
+      let count = 0;
+      const interval = setInterval(() => {
+        forceQC();
+        count++;
+        if (count > 10) clearInterval(interval);
+      }, 200);
+
+      // Greeting text
+      const greetingEl = document.getElementById("greeting-text");
+      if (greetingEl) greetingEl.innerText = CONFIG.greeting;
+
+      // Convert wind to km/h
+      const windEl = document.getElementById("cc-wind");
+      if (windEl) {
+        let windText = windEl.innerText;
+        let speed = parseInt(windText.replace(/\D/g, '')) || 0;
+        windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
+      }
+
+      // Pressure conversion formatting
+      const pressureEl = document.getElementById("cc-pressure1");
+      const pressureDecimalEl = document.getElementById("cc-pressure2");
+      const pressureMetricEl = document.getElementById("cc-pressure-metric");
+      if (pressureEl && pressureDecimalEl && pressureMetricEl) {
+        let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
+        pressureEl.innerText = Math.floor(pressure);
+        pressureDecimalEl.innerText = '';
+        pressureMetricEl.innerText = ' hPa';
+      }
+    }, 700);
   },
-  load: () => {
-    let settingsPrompt = getElement('settings-prompt')
-    let advancedSettingsOptions = getElement('advanced-settings-options')
 
-    //Advanced Options Setup
-    CONFIG.options.forEach((option) => {
-      //<div class="regular-text settings-item settings-text">Zip Code</div>
-      let label = document.createElement('div')
-        label.classList.add('strong-text', 'settings-item', 'settings-text', 'settings-padded')
-        label.style.textAlign='left'
-      label.appendChild(document.createTextNode(option.name))
-      label.id = `${option.id}-label`
-      //<input class="settings-item settings-text" type="text" id="zip-code-text">
-      let textbox = document.createElement('textarea')
-      textbox.classList.add('settings-item', 'settings-text', 'settings-input')
-      textbox.type = 'text'
-      textbox.style.fontSize = '20px'
-      textbox.placeholder = option.desc
-      textbox.id = `${option.id}-text`
-      textbox.style.maxWidth='320px'
-      textbox.style.minWidth='320px'
-      textbox.style.height='100px'
-      textbox.style.marginTop='10px'
-      if (localStorage.getItem(option.id)) textbox.value = localStorage.getItem(option.id)
-      let br = document.createElement('br')
-      advancedSettingsOptions.appendChild(label)
-      advancedSettingsOptions.appendChild(textbox)
-      advancedSettingsOptions.appendChild(br)
-      //<br>
-    })
+  // Load remote config first, then run submit()
+  load: async () => {
+    hideSettings();
 
-    let advancedButtonContainer = document.createElement('div')
-    advancedButtonContainer.classList.add('settings-container')
-    settingsPrompt.appendChild(advancedButtonContainer)
-    let advancedButton = document.createElement('button')
-    advancedButton.innerHTML = "Show advanced options"
-    advancedButton.id = "advanced-options-text"
-    advancedButton.setAttribute('onclick', 'toggleAdvancedSettings()')
-    advancedButton.classList.add('regular-text', 'settings-input', 'button')
-    advancedButtonContainer.appendChild(advancedButton)
-    //<button class="setting-item settings-text" id="submit-button" onclick="checkZipCode();" style="margin-bottom: 10px;">Start</button>-->
-    let btn = document.createElement('button')
-    btn.classList.add('setting-item', 'settings-text', 'settings-input', 'button')
-    btn.id = 'submit-button'
-    btn.onclick = CONFIG.submit
-    btn.style = 'margin-bottom: 10px;'
-    btn.appendChild(document.createTextNode('Start'))
-    settingsPrompt.appendChild(btn)
-    if (CONFIG.loop || localStorage.getItem('loop') === 'y') {
-      CONFIG.loop = true;
-      hideSettings();
-      CONFIG.submit()
+    try {
+      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", {
+        cache: "no-store"
+      });
+      const data = await res.json();
+
+      CONFIG.crawlOptions = data.crawlOptions || [];
+      CONFIG.greetingOptions = data.greetingOptions || [];
+
+    } catch (err) {
+      console.error("Failed to load remote config:", err);
+      // fallback values so nothing breaks
+      CONFIG.crawlOptions = ["Failed to load crawl"];
+      CONFIG.greetingOptions = ["Hello! (fallback)"];
     }
-  }
-}
 
-CONFIG.unitField = CONFIG.units === 'm' ? 'metric' : (CONFIG.units === 'h' ? 'uk_hybrid' : 'imperial')
+    CONFIG.submit();
+  }
+};
+
+// Always metric
+CONFIG.unitField = 'metric';
