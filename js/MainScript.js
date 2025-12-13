@@ -1,3 +1,20 @@
+function waitForEightMinute(callback) {
+  function checkTime() {
+    const now = new Date();
+    const minute = now.getMinutes();
+
+    // minutes ending in 8: 08,18,28,38,48,58
+    if (minute % 10 === 8) {
+      callback();
+    } else {
+      // check again in 1 second
+      setTimeout(checkTime, 1000);
+    }
+  }
+
+  checkTime();
+}
+
 // Preset timeline sequences
 const MORNING = [{name: "Now", subpages: [{name: "current-page", duration: 9000}, {name: "radar-page", duration: 8000}]},{name: "Today", subpages: [{name: "today-page", duration: 10000}]},{name: "Tonight", subpages: [{name: "tonight-page", duration: 10000}]},{name: "Beyond", subpages: [{name: "tomorrow-page", duration: 10000}, {name: "7day-page", duration: 13000}]},]
 const NIGHT = [{name: "Now", subpages: [{name: "current-page", duration: 9000}, {name: "radar-page", duration: 8000}]},{name: "Tonight", subpages: [{name: "tonight-page", duration: 10000}]},{name: "Beyond", subpages: [{name: "tomorrow-page", duration: 10000}, {name: "tomorrow-night-page", duration: 10000}, {name: "7day-page", duration: 13000}]},]
@@ -94,7 +111,10 @@ function setInformation(){
   setCurrentConditions();
   setTimelineEvents();
   hideSettings();
-  setTimeout(startAnimation, 1000);
+  waitForEightMinute(() => {
+  startAnimation();
+});
+
 }
 
 const backgroundConfigUrl = "https://jibboshtvfiles.jibbosh.com/config/i2.json";
