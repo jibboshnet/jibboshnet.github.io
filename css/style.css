@@ -1,3 +1,18 @@
+html, body {
+  overflow: auto;
+
+  /* Firefox */
+  scrollbar-width: none;
+
+  /* IE / old Edge (also helps OBS) */
+  -ms-overflow-style: none;
+}
+
+/* Chrome, Edge, Safari, OBS (CEF) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
 
 
 
