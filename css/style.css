@@ -1,3 +1,7 @@
+#timeline-logo-container,
+#timeline-event-container {
+  display: none !important;
+}
 
 html, body {
   overflow: auto;
