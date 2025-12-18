@@ -31,41 +31,52 @@ function guessZipCode(){
 
 function fetchAlerts(){
   var alertCrawl = "";
-  fetch(`https://api.weather.gov/alerts/active?point=${latitude},${longitude}`)
-    .then(function(response) {
-        if (response.status !== 200) {
-            console.warn("Alerts Error, no alerts will be shown");
-        }
-      response.json().then(function(data) {
-        if (data.features == undefined){
-          fetchForecast();
-          return;
-        }
-        if (data.features.length == 1) {
-          alerts[0] = data.features[0].properties.event + '<br>' + data.features[0].properties.description.replace("..."," ").replace(/\*/g, "")
-          for(var i = 0; i < data.features.length; i++){
-            /* Take the most important alert message and set it as crawl text
-            This will supply more information i.e. tornado warning coverage */
-            alertCrawl = alertCrawl + " " + data.features[i].properties.description.replace("...", " ");
-          }
-        }
-        else {
-          for(var i = 0; i < data.features.length; i++){
-            /* Take the most important alert message and set it as crawl text
-            This will supply more information i.e. tornado warning coverage */
-            alertCrawl = alertCrawl + " " + data.features[i].properties.description.replace("...", " ");
+  alerts = [];
 
-            alerts[i] = data.features[i].properties.event
-          }
-        }
-        if(alertCrawl != ""){
-          CONFIG.crawl = alertCrawl;
-        }
-        alertsActive = alerts.length > 0;
+  const url = `https://api.weather.com/v3/alerts/headlines?geocode=${latitude},${longitude}&format=json&language=en-US&apiKey=${CONFIG.secrets.twcAPIKey}`;
+
+  fetch(url)
+    .then(function(response) {
+      if (!response.ok) {
+        console.warn("TWC Alerts Error, no alerts will be shown");
         fetchForecast();
-      });
+        return;
+      }
+      return response.json();
     })
+    .then(function(data) {
+      if (!data || !data.alerts || data.alerts.length === 0) {
+        fetchForecast();
+        return;
+      }
+
+      if (data.alerts.length === 1) {
+        alerts[0] =
+          data.alerts[0].eventDescription +
+          "<br>" +
+          (data.alerts[0].headlineText || "");
+
+        alertCrawl += " " + (data.alerts[0].detailText || "");
+      } else {
+        for (var i = 0; i < data.alerts.length; i++) {
+          alerts[i] = data.alerts[i].eventDescription;
+          alertCrawl += " " + (data.alerts[i].detailText || "");
+        }
+      }
+
+      if (alertCrawl !== "") {
+        CONFIG.crawl = alertCrawl.replace(/\*/g, "").replace(/\.\.\./g, " ");
+      }
+
+      alertsActive = alerts.length > 0;
+      fetchForecast();
+    })
+    .catch(function(err) {
+      console.warn("TWC Alerts Fetch Failed:", err);
+      fetchForecast();
+    });
 }
+
 
 function fetchForecast(){
   fetch(`https://api.weather.com/v1/geocode/${latitude}/${longitude}/forecast/daily/10day.json?language=${CONFIG.language}&units=${CONFIG.units}&apiKey=${CONFIG.secrets.twcAPIKey}`)
