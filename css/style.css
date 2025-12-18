@@ -1,3 +1,7 @@
+#timeline-container {
+  display: none !important;
+}
+
 html, body {
   overflow: auto;
 
