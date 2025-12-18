@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://jibboshnet.github.io/js/dmtz.js" defer></script>
+
+  <link href="https://demonitize.github.io/weather8s/css/gapless5.css" rel="stylesheet">
+  <script src="https://demonitize.github.io/weather8s/js/gapless5.js"></script>
+
+  <link rel="shortcut icon" type="image/png" href="https://jibboshnet.github.io/assets/logos/favicon.png"/>
+
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/text.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/style.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/page.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/alert.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/background.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/crawl.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/currentconditions.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/forecast.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/greeting.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/infobar.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/outlook.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/radar.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/settings.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/amazing.css">
+  <link rel="stylesheet" href="https://jibboshnet.github.io/css/updated.css">
+
+  <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+
+  <link rel="preload" as="audio" href="https://jibboshnet.github.io/assets/music/jingle.wav">
+  <link rel="preload" as="audio" href="https://jibboshnet.github.io/assets/music/storm.wav">
+
+  <link rel="preload" href="https://jibboshnet.github.io/fonts/akkopro-light.ttf" as="font" crossorigin>
+  <link rel="preload" href="https://jibboshnet.github.io/fonts/akkopro-thin.otf" as="font" crossorigin>
+
+  <script src="https://jibboshnet.github.io/js/Config2.js"></script>
+  <script src="https://jibboshnet.github.io/js/MainScript.js"></script>
+  <script src="https://jibboshnet.github.io/js/WeatherFetching.js"></script>
+  <script src="https://jibboshnet.github.io/js/InformationSetting.js"></script>
+  <script src="https://jibboshnet.github.io/js/Conditions.js"></script>
+
+  <script src="https://jibboshnet.github.io/weather8s/js/Narrations.js"></script>
+  <script src="https://jibboshnet.github.io/weather8s/js/VocalKeyDecoder.js"></script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=660,user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>IntelliSTAR Emulator</title>
+</head>
+
+<body>
+<div id="render-frame">
+
+  <!-- Background -->
+  <div id="background-image" class="below-screen">
+    <div id="contentframe" style="position:relative; top:300px; left:1460px;"></div>
+  </div>
+
+  <!-- Info Bar -->
+  <div id="infobar-container">
+    <img id="infobar-twc-logo" src="https://files.catbox.moe/cmy83y.svg" onclick="twcLogoClick();">
+    <img id="infobar-local-logo" src="https://jibboshnet.github.io/assets/logos/local.svg">
+    <div id="infobar-location-container" class="infobar-item-container">
+      <div id="infobar-location-text" class="regular-text infobar-text"></div>
+    </div>
+    <div id="infobar-time-container" class="infobar-item-container">
+      <div id="infobar-time-text" class="regular-text infobar-text"></div>
+    </div>
+  </div>
+
+  <div id="content-container"></div>
+
+  <!-- MAIN CONTENT -->
+  <div id="content-frame">
+
+    <!-- Greeting -->
+    <div id="greeting-page">
+      <div id="local-logo-container">
+        <img src="https://jibboshnet.github.io/assets/logos/local-white-box.svg">
+      </div>
+      <div id="hello-text-container">
+        <div id="hello-text" class="strong-text">HELLO</div>
+      </div>
+      <div id="hello-location-container">
+        <div id="hello-location-text" class="regular-text"></div>
+      </div>
+      <div id="greeting-text-container">
+        <div id="greeting-text" class="regular-text"></div>
+      </div>
+    </div>
+
+    <!-- Single Alert -->
+    <div id="single-alert-page" class="page-container alert-page-container">
+      <div class="page-title-bar alert-title-bar regular-text">ALERT</div>
+      <div class="page-content-container forecast forecast-right" style="width:100%">
+        <div id="single-alert0" class="narrative-text regular-text"></div>
+      </div>
+    </div>
+
+    <!-- Multiple Alerts -->
+    <div id="multiple-alerts-page" class="page-container alert-page-container">
+      <div class="page-title-bar alert-title-bar regular-text">ALERTS</div>
+      <div class="page-content-container shaded-page-content">
+        <div class="alert-container"><div id="alert0" class="multiple-alert-text regular-text"></div></div>
+        <div class="alert-container"><div id="alert1" class="multiple-alert-text regular-text"></div></div>
+        <div class="alert-container"><div id="alert2" class="multiple-alert-text regular-text"></div></div>
+      </div>
+    </div>
+
+    <!-- Current Conditions -->
+    <div id="current-page" class="page-container">
+      <div class="page-title-bar regular-text">Now</div>
+      <div class="page-content-container shaded-page-content">
+        <div style="width:300px; float:left;">
+          <svg id="cc-dial" viewBox="0 0 77.13 77.13">
+            <circle cx="38.56" cy="38.56" r="38.56" opacity="0.25"/>
+            <image id="ccicon" x="35%" y="18%" width="24" height="24"
+                   href="https://jibboshnet.github.io/assets/icons/conditions/na.svg"/>
+            <text id="cc-temperature-text" x="50%" y="75%" text-anchor="middle"
+                  class="regular-text" style="font-size:24px">NA</text>
+          </svg>
+        </div>
+
+        <div id="cc-container">
+          <div class="cc-line-container">
+            <div id="cc-condition" class="regular-text cc-text">Condition</div>
+          </div>
+          <div class="cc-line-container">
+            <div class="regular-text cc-text">WIND <span id="cc-wind"></span></div>
+          </div>
+          <div class="cc-line-container">
+            <div class="regular-text cc-text">HUMIDITY <span id="cc-humidity"></span>%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar -->
+    <div id="radar-page" class="page-container">
+      <div class="page-title-bar regular-text">Regional Radar</div>
+      <div class="page-content-container">
+        <div id="radar-container" class="radar-container"></div>
+      </div>
+    </div>
+
+    <!-- 7 Day -->
+    <div id="7day-page" class="page-container">
+      <div class="page-title-bar regular-text">7 Day Forecast</div>
+      <div class="page-content-container">
+        <div id="forecast-left-container"></div>
+        <div id="forecast-right-container"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Amazing -->
+  <div id="amazing-container">
+    <div class="regular-text">#ItsAmazingOutThere</div>
+    <img src="https://jibboshnet.github.io/assets/logos/twc_color.svg">
+  </div>
+
+  <!-- Updated -->
+  <div id="updated-container">
+    <img src="https://jibboshnet.github.io/assets/logos/twc_color.svg">
+    <div class="regular-text">For more information, stay on</div>
+  </div>
+
+  <!-- Crawl -->
+  <div id="crawler-container">
+    <div id="crawl-text" class="regular-text"></div>
+  </div>
+
+  <!-- Alert Message -->
+  <div id="alert-message" class="regular-text">Alert Message</div>
+
+</div>
+</body>
+</html>
