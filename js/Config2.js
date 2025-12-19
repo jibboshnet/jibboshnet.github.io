@@ -32,7 +32,11 @@ window.CONFIG = {
 
     // Random greeting + crawl from loaded options
     CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
-    CONFIG.crawl = CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)] || "";
+    CONFIG.crawl =
+    CONFIG.crawlOptions.length
+    ? CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)]
+    : "Weather information unavailable";
+
 
     fetchCurrentWeather();
 
