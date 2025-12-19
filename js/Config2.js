@@ -30,17 +30,21 @@ window.CONFIG = {
 
     CONFIG.unitField = 'metric';
 
-    // Random greeting + crawl from loaded options
-    CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
-    CONFIG.crawl =
-    CONFIG.crawlOptions.length
-    ? CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)]
-    : "Weather information unavailable";
+    // Random greeting + crawl
+    CONFIG.greeting =
+      CONFIG.greetingOptions.length
+        ? CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)]
+        : "";
 
+    CONFIG.crawl =
+      CONFIG.crawlOptions.length
+        ? CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)]
+        : "";
 
     fetchCurrentWeather();
 
     setTimeout(() => {
+      /* ---------- FORCE LOCATION ---------- */
       const forceQC = () => {
         const t1 = document.getElementById("infobar-location-text");
         const t2 = document.getElementById("hello-location-text");
@@ -48,19 +52,32 @@ window.CONFIG = {
         if (t2) t2.innerText = "Fredericton";
       };
 
-      // Run a few times to override TWC updates
       let count = 0;
       const interval = setInterval(() => {
         forceQC();
-        count++;
-        if (count > 10) clearInterval(interval);
+        if (++count > 10) clearInterval(interval);
       }, 200);
 
-      // Greeting text
+      /* ---------- GREETING ---------- */
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-      // Convert wind to km/h
+      /* ---------- CRAWL (FIXED) ---------- */
+      const crawlEl = document.getElementById("crawl-text");
+      if (crawlEl) {
+        crawlEl.innerText = CONFIG.crawl;
+
+        // Optional: scale speed by text length
+        const duration = Math.max(6, CONFIG.crawl.length * 0.15);
+        crawlEl.style.animationDuration = `${duration}s`;
+
+        // Restart animation
+        crawlEl.classList.remove("animate");
+        void crawlEl.offsetWidth; // force reflow
+        crawlEl.classList.add("animate");
+      }
+
+      /* ---------- WIND km/h ---------- */
       const windEl = document.getElementById("cc-wind");
       if (windEl) {
         let windText = windEl.innerText;
@@ -68,12 +85,13 @@ window.CONFIG = {
         windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
       }
 
-      // Pressure conversion formatting
+      /* ---------- PRESSURE hPa ---------- */
       const pressureEl = document.getElementById("cc-pressure1");
       const pressureDecimalEl = document.getElementById("cc-pressure2");
       const pressureMetricEl = document.getElementById("cc-pressure-metric");
       if (pressureEl && pressureDecimalEl && pressureMetricEl) {
-        let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
+        let pressure =
+          parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
         pressureEl.innerText = Math.floor(pressure);
         pressureDecimalEl.innerText = '';
         pressureMetricEl.innerText = ' hPa';
@@ -81,24 +99,23 @@ window.CONFIG = {
     }, 700);
   },
 
-  // Load remote config first, then run submit()
+  /* ---------- LOAD REMOTE CONFIG ---------- */
   load: async () => {
     hideSettings();
 
     try {
-      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", {
-        cache: "no-store"
-      });
+      const res = await fetch(
+        "https://jibboshtvfiles.jibbosh.com/config/i2.json",
+        { cache: "no-store" }
+      );
       const data = await res.json();
 
       CONFIG.crawlOptions = data.crawlOptions || [];
       CONFIG.greetingOptions = data.greetingOptions || [];
-
     } catch (err) {
       console.error("Failed to load remote config:", err);
-      // fallback values so nothing breaks
-      CONFIG.crawlOptions = ["Failed to load crawl"];
-      CONFIG.greetingOptions = ["Hello! (fallback)"];
+      CONFIG.crawlOptions = ["Weather information unavailable"];
+      CONFIG.greetingOptions = ["Hello!"];
     }
 
     CONFIG.submit();
