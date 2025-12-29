@@ -1,4 +1,6 @@
-
+#crawler-container {
+    visibility: hidden; /* Keeps the space but hides the content */
+}
 
 html, body {
   overflow: auto;
