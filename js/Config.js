@@ -56,6 +56,16 @@ window.CONFIG = {
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
+      // Crawl text
+      const crawlEl = document.getElementById("crawl-text");
+      if (crawlEl) {
+        crawlEl.innerText = CONFIG.crawl;
+        // Reset animation to replay it
+        crawlEl.style.animation = 'none';
+        crawlEl.offsetHeight; // force reflow
+        crawlEl.style.animation = '';
+      }
+
       // Convert wind to km/h
       const windEl = document.getElementById("cc-wind");
       if (windEl) {
