@@ -25,17 +25,18 @@ window.CONFIG = {
   addOption: () => {},
 
   forceQuebecCity: () => {
-    // Immediately set location text to Quebec City
     const t1 = document.getElementById("infobar-location-text");
     const t2 = document.getElementById("hello-location-text");
-    if (t1) t1.innerText = "Quebec City";
-    if (t2) t2.innerText = "Quebec City";
 
-    // Keep forcing it every 200ms to override any TWC updates
+    // Only update if text is not already "Quebec City"
+    if (t1 && t1.innerText !== "Quebec City") t1.innerText = "Quebec City";
+    if (t2 && t2.innerText !== "Quebec City") t2.innerText = "Quebec City";
+
+    // Keep checking periodically in case something changes it
     setInterval(() => {
-      if (t1) t1.innerText = "Quebec City";
-      if (t2) t2.innerText = "Quebec City";
-    }, 200);
+      if (t1 && t1.innerText !== "Quebec City") t1.innerText = "Quebec City";
+      if (t2 && t2.innerText !== "Quebec City") t2.innerText = "Quebec City";
+    }, 500); // check every 0.5s
   },
 
   submit: () => {
