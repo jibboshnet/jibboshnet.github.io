@@ -509,16 +509,22 @@ function stayUpdated(){
 }
 
 // Final background animate out
-function clearEnd(){
-  getElement('background-image').classList.add("above-screen");
-  getElement('content-container').classList.add("above-screen");
+function clearEnd() {
+  getElement("background-image").classList.add("above-screen");
+  getElement("content-container").classList.add("above-screen");
 
   // Reload the page after animation has completed
   // If looping is enabled, the sequence will start again
   // Otherwise, the zip code prompt will show again
-  setTimeout(reloadPage, 400)
+  if (getQueryVariable("endScene") != 'false') {
+    setTimeout(() => {
+      window.obsstudio.setCurrentScene(getQueryVariable("endScene"));
+      reloadPage();
+    }, 400);
+  }
+  if (!CONFIG.loop && !CONFIG.standbyMode) setTimeout(reloadPage, 400);
+  // CONFIG.submit();
 }
-
 function reloadPage(){
   location.reload()
 }
