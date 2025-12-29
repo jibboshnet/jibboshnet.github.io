@@ -32,7 +32,7 @@ window.CONFIG = {
     if (t1 && t1.innerText !== "Quebec City") t1.innerText = "Quebec City";
     if (t2 && t2.innerText !== "Quebec City") t2.innerText = "Quebec City";
 
-    // Keep checking periodically in case something changes it
+    // Periodically check in case something changes it
     setInterval(() => {
       if (t1 && t1.innerText !== "Quebec City") t1.innerText = "Quebec City";
       if (t2 && t2.innerText !== "Quebec City") t2.innerText = "Quebec City";
@@ -73,13 +73,18 @@ window.CONFIG = {
         // Loop through crawl messages
         setInterval(() => {
           CONFIG.crawlIndex = (CONFIG.crawlIndex + 1) % CONFIG.crawlOptions.length;
-          CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
-          crawlEl.innerText = CONFIG.crawl;
+          const nextCrawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
 
-          // Reset animation each time
-          crawlEl.style.animation = 'none';
-          crawlEl.offsetHeight;
-          crawlEl.style.animation = '';
+          // Only update if different from current
+          if (crawlEl.innerText !== nextCrawl) {
+            CONFIG.crawl = nextCrawl;
+            crawlEl.innerText = CONFIG.crawl;
+
+            // Reset animation each time
+            crawlEl.style.animation = 'none';
+            crawlEl.offsetHeight;
+            crawlEl.style.animation = '';
+          }
         }, 7000); // match your animation duration
       }
 
