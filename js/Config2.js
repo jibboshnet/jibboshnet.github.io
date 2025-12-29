@@ -1,6 +1,8 @@
+
 window.CONFIG = {
   // Default empty until remote loads
   crawlOptions: [],
+  crawlIndex: 0, // track which crawl we're on
   crawl: '',
 
   greetingOptions: [],
@@ -23,61 +25,71 @@ window.CONFIG = {
   addLocationOption: () => {},
   addOption: () => {},
 
+  forceQuebecCity: () => {
+    const t1 = document.getElementById("infobar-location-text");
+    const t2 = document.getElementById("hello-location-text");
+
+    // Only update if text is not already "Fredericton"
+    if (t1 && t1.innerText !== "Fredericton") t1.innerText = "Fredericton";
+    if (t2 && t2.innerText !== "Fredericton") t2.innerText = "Fredericton";
+
+    // Periodically check in case something changes it
+    setInterval(() => {
+      if (t1 && t1.innerText !== "Fredericton") t1.innerText = "Fredericton";
+      if (t2 && t2.innerText !== "Fredericton") t2.innerText = "Fredericton";
+    }, 500); // check every 0.5s
+  },
+
   submit: () => {
     CONFIG.locationMode = "AIRPORT";
     airportCode = "YFC";
     zipCode = null;
-
     CONFIG.unitField = 'metric';
 
-    // Random greeting + crawl
-    CONFIG.greeting =
-      CONFIG.greetingOptions.length
-        ? CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)]
-        : "";
+    // Random greeting from loaded options
+    CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
 
-    CONFIG.crawl =
-      CONFIG.crawlOptions.length
-        ? CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)]
-        : "";
+    // Force Fredericton immediately
+    CONFIG.forceQuebecCity();
 
     fetchCurrentWeather();
 
     setTimeout(() => {
-      /* ---------- FORCE LOCATION ---------- */
-      const forceQC = () => {
-        const t1 = document.getElementById("infobar-location-text");
-        const t2 = document.getElementById("hello-location-text");
-        if (t1) t1.innerText = "Fredericton";
-        if (t2) t2.innerText = "Fredericton";
-      };
-
-      let count = 0;
-      const interval = setInterval(() => {
-        forceQC();
-        if (++count > 10) clearInterval(interval);
-      }, 200);
-
-      /* ---------- GREETING ---------- */
+      // Greeting text
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-      /* ---------- CRAWL (FIXED) ---------- */
+      // Crawl text loop
       const crawlEl = document.getElementById("crawl-text");
-      if (crawlEl) {
+      if (crawlEl && CONFIG.crawlOptions.length > 0) {
+        // Immediately show first crawl
+        CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
         crawlEl.innerText = CONFIG.crawl;
 
-        // Optional: scale speed by text length
-        const duration = Math.max(6, CONFIG.crawl.length * 0.15);
-        crawlEl.style.animationDuration = `${duration}s`;
+        // Reset animation
+        crawlEl.style.animation = 'none';
+        crawlEl.offsetHeight;
+        crawlEl.style.animation = '';
 
-        // Restart animation
-        crawlEl.classList.remove("animate");
-        void crawlEl.offsetWidth; // force reflow
-        crawlEl.classList.add("animate");
+        // Loop through crawl messages
+        setInterval(() => {
+          CONFIG.crawlIndex = (CONFIG.crawlIndex + 1) % CONFIG.crawlOptions.length;
+          const nextCrawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
+
+          // Only update if different from current
+          if (crawlEl.innerText !== nextCrawl) {
+            CONFIG.crawl = nextCrawl;
+            crawlEl.innerText = CONFIG.crawl;
+
+            // Reset animation each time
+            crawlEl.style.animation = 'none';
+            crawlEl.offsetHeight;
+            crawlEl.style.animation = '';
+          }
+        }, 7000); // match your animation duration
       }
 
-      /* ---------- WIND km/h ---------- */
+      // Convert wind to km/h
       const windEl = document.getElementById("cc-wind");
       if (windEl) {
         let windText = windEl.innerText;
@@ -85,13 +97,12 @@ window.CONFIG = {
         windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
       }
 
-      /* ---------- PRESSURE hPa ---------- */
+      // Pressure conversion formatting
       const pressureEl = document.getElementById("cc-pressure1");
       const pressureDecimalEl = document.getElementById("cc-pressure2");
       const pressureMetricEl = document.getElementById("cc-pressure-metric");
       if (pressureEl && pressureDecimalEl && pressureMetricEl) {
-        let pressure =
-          parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
+        let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
         pressureEl.innerText = Math.floor(pressure);
         pressureDecimalEl.innerText = '';
         pressureMetricEl.innerText = ' hPa';
@@ -99,23 +110,24 @@ window.CONFIG = {
     }, 700);
   },
 
-  /* ---------- LOAD REMOTE CONFIG ---------- */
+  // Load remote config first, then run submit()
   load: async () => {
     hideSettings();
 
     try {
-      const res = await fetch(
-        "https://jibboshtvfiles.jibbosh.com/config/i2.json",
-        { cache: "no-store" }
-      );
+      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", {
+        cache: "no-store"
+      });
       const data = await res.json();
 
       CONFIG.crawlOptions = data.crawlOptions || [];
       CONFIG.greetingOptions = data.greetingOptions || [];
+
     } catch (err) {
       console.error("Failed to load remote config:", err);
-      CONFIG.crawlOptions = ["Weather information unavailable"];
-      CONFIG.greetingOptions = ["Hello!"];
+      // fallback values so nothing breaks
+      CONFIG.crawlOptions = ["Failed to load crawl"];
+      CONFIG.greetingOptions = ["Hello! (fallback)"];
     }
 
     CONFIG.submit();
