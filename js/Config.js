@@ -1,6 +1,7 @@
 window.CONFIG = {
   // Default empty until remote loads
   crawlOptions: [],
+  crawlIndex: 0, // track which crawl we're on
   crawl: '',
 
   greetingOptions: [],
@@ -23,47 +24,62 @@ window.CONFIG = {
   addLocationOption: () => {},
   addOption: () => {},
 
+  forceQuebecCity: () => {
+    // Immediately set location text to Quebec City
+    const t1 = document.getElementById("infobar-location-text");
+    const t2 = document.getElementById("hello-location-text");
+    if (t1) t1.innerText = "Quebec City";
+    if (t2) t2.innerText = "Quebec City";
+
+    // Keep forcing it every 200ms to override any TWC updates
+    setInterval(() => {
+      if (t1) t1.innerText = "Quebec City";
+      if (t2) t2.innerText = "Quebec City";
+    }, 200);
+  },
+
   submit: () => {
     CONFIG.locationMode = "AIRPORT";
     airportCode = "YQB";
     zipCode = null;
-
     CONFIG.unitField = 'metric';
 
-    // Random greeting + crawl from loaded options
+    // Random greeting from loaded options
     CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
-    CONFIG.crawl = CONFIG.crawlOptions[Math.floor(Math.random() * CONFIG.crawlOptions.length)] || "";
+
+    // Force Quebec City immediately
+    CONFIG.forceQuebecCity();
 
     fetchCurrentWeather();
 
     setTimeout(() => {
-      const forceQC = () => {
-        const t1 = document.getElementById("infobar-location-text");
-        const t2 = document.getElementById("hello-location-text");
-        if (t1) t1.innerText = "Quebec City";
-        if (t2) t2.innerText = "Quebec City";
-      };
-
-      // Run a few times to override TWC updates
-      let count = 0;
-      const interval = setInterval(() => {
-        forceQC();
-        count++;
-        if (count > 10) clearInterval(interval);
-      }, 200);
-
       // Greeting text
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-      // Crawl text
+      // Crawl text loop
       const crawlEl = document.getElementById("crawl-text");
-      if (crawlEl) {
+      if (crawlEl && CONFIG.crawlOptions.length > 0) {
+        // Immediately show first crawl
+        CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
         crawlEl.innerText = CONFIG.crawl;
-        // Reset animation to replay it
+
+        // Reset animation
         crawlEl.style.animation = 'none';
-        crawlEl.offsetHeight; // force reflow
+        crawlEl.offsetHeight;
         crawlEl.style.animation = '';
+
+        // Loop through crawl messages
+        setInterval(() => {
+          CONFIG.crawlIndex = (CONFIG.crawlIndex + 1) % CONFIG.crawlOptions.length;
+          CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
+          crawlEl.innerText = CONFIG.crawl;
+
+          // Reset animation each time
+          crawlEl.style.animation = 'none';
+          crawlEl.offsetHeight;
+          crawlEl.style.animation = '';
+        }, 7000); // match your animation duration
       }
 
       // Convert wind to km/h
