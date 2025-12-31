@@ -1,9 +1,20 @@
 function waitForEightMinute(callback) {
   const params = new URLSearchParams(window.location.search);
   const isDebug = params.has('debug');
+  const LAST_RUN_KEY = 'waitForEightMinuteLastRun';
+
+  function hasRunRecently() {
+    const lastRun = localStorage.getItem(LAST_RUN_KEY);
+    if (!lastRun) return false;
+    const now = Date.now();
+    return now - parseInt(lastRun, 10) < 2 * 60 * 1000; // 2 minutes
+  }
+
+  function markRun() {
+    localStorage.setItem(LAST_RUN_KEY, Date.now().toString());
+  }
 
   if (isDebug) {
-    // run immediately in debug mode
     callback();
     return;
   }
@@ -13,7 +24,8 @@ function waitForEightMinute(callback) {
     const minute = now.getMinutes();
 
     // minutes ending in 8: 08, 18, 28, 38, 48, 58
-    if (minute % 10 === 8) {
+    if (minute % 10 === 8 && !hasRunRecently()) {
+      markRun();
       callback();
     } else {
       setTimeout(checkTime, 1000);
@@ -22,6 +34,7 @@ function waitForEightMinute(callback) {
 
   checkTime();
 }
+
 
 
 // Preset timeline sequences
