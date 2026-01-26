@@ -29,14 +29,14 @@ window.CONFIG = {
     const t1 = document.getElementById("infobar-location-text");
     const t2 = document.getElementById("hello-location-text");
 
-    // Only update if text is not already "Fredericton"
-    if (t1 && t1.innerText !== "Fredericton") t1.innerText = "Fredericton";
-    if (t2 && t2.innerText !== "Fredericton") t2.innerText = "Fredericton";
+    // Only update if text is not already "FREDERICTON"
+    if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
+    if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
 
     // Periodically check in case something changes it
     setInterval(() => {
-      if (t1 && t1.innerText !== "Fredericton") t1.innerText = "Fredericton";
-      if (t2 && t2.innerText !== "Fredericton") t2.innerText = "Fredericton";
+      if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
+      if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
     }, 500); // check every 0.5s
   },
 
@@ -49,7 +49,7 @@ window.CONFIG = {
     // Random greeting from loaded options
     CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
 
-    // Force Fredericton immediately
+    // Force FREDERICTON immediately
     CONFIG.forceQuebecCity();
 
     fetchCurrentWeather();
