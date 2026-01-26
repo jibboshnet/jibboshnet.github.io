@@ -151,7 +151,7 @@ const MULTIPLE = [
 
 const WEEKDAY = ["SUN", "MON", "TUES", "WED", "THU", "FRI", "SAT"];
 
-const jingle = new Audio("assets/music/jingle.wav")
+const jingle = new Audio("assets/music/jingle.mp3")
 
 const crawlSpeedCasual = 10; // A normal reading pace, in characters per second
 const crawlSpeedFast = 20; // A fast reading pace, in characters per second
@@ -200,7 +200,7 @@ function toggleAdvancedSettings(){
 
 function preLoadMusic(){
   var index = Math.floor(Math.random() * 12) + 1;
-  music = new Audio("assets/music/" + index + ".wav");
+  music = new Audio("assets/music/" + index + ".mp3");
 }
 
 /* Set the timeline page order depending on time of day and if
