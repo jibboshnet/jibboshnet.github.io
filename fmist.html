@@ -3,10 +3,9 @@
 
 <head>
   <script>
-	  window.CONFIG = {
-  // Default empty until remote loads
+ window.CONFIG = {
   crawlOptions: [],
-  crawlIndex: 0, // track which crawl we're on
+  crawlIndex: 0,
   crawl: '',
 
   greetingOptions: [],
@@ -19,13 +18,10 @@
   loop: true,
   locationMode: "AIRPORT",
 
-  secrets: {
-    twcAPIKey: 'e1f10a1e78da46f5b10a1e78da96f525'
-  },
+  secrets: { twcAPIKey: 'e1f10a1e78da46f5b10a1e78da96f525' },
 
   locationOptions: [],
   options: [],
-
   addLocationOption: () => {},
   addOption: () => {},
 
@@ -34,13 +30,11 @@
   forceQuebecCity: () => {
     const t1 = document.getElementById("infobar-location-text");
     const t2 = document.getElementById("hello-location-text");
-
-    if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
-    if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
-
+    if (t1) t1.innerText = "FREDERICTON";
+    if (t2) t2.innerText = "FREDERICTON";
     setInterval(() => {
-      if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
-      if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
+      if (t1) t1.innerText = "FREDERICTON";
+      if (t2) t2.innerText = "FREDERICTON";
     }, 500);
   },
 
@@ -57,11 +51,9 @@
     if (typeof fetchCurrentWeather === "function") fetchCurrentWeather();
 
     setTimeout(() => {
-      // Greeting
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-      // Crawl text
       const crawlEl = document.getElementById("crawl-text");
       if (crawlEl && CONFIG.crawlOptions.length > 0) {
         CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
@@ -83,14 +75,12 @@
         }, 7000);
       }
 
-      // Wind km/h
       const windEl = document.getElementById("cc-wind");
       if (windEl) {
         let speed = parseInt(windEl.innerText.replace(/\D/g, '')) || 0;
         windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
       }
 
-      // Pressure hPa
       const pressureEl = document.getElementById("cc-pressure1");
       const pressureDecimalEl = document.getElementById("cc-pressure2");
       const pressureMetricEl = document.getElementById("cc-pressure-metric");
@@ -101,8 +91,7 @@
         pressureMetricEl.innerText = ' hPa';
       }
 
-      // Wallpaper (only first from fmist.json)
-      if (CONFIG.wallpapers.length > 0) {
+      if (CONFIG.wallpapers.length > 0 && CONFIG.wallpapers[0]) {
         document.body.style.backgroundImage = `url('${CONFIG.wallpapers[0]}')`;
         document.body.style.backgroundSize = "cover";
         document.body.style.backgroundPosition = "center";
@@ -113,23 +102,29 @@
   load: async () => {
     hideSettings?.();
 
-    // Load i2.json for crawl/greeting
+    // Load i2.json
     try {
-      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", { cache: "no-store" });
-      const data = await res.json();
-      CONFIG.crawlOptions = data.crawlOptions || [];
-      CONFIG.greetingOptions = data.greetingOptions || [];
+      const res1 = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", { cache: "no-store" });
+      const data1 = await res1.json();
+      CONFIG.crawlOptions = data1.crawlOptions || [];
+      CONFIG.greetingOptions = data1.greetingOptions || [];
+      console.log("Loaded i2.json:", CONFIG.crawlOptions, CONFIG.greetingOptions);
     } catch (err) {
       console.error("Failed to load i2.json:", err);
       CONFIG.crawlOptions = ["Failed to load crawl"];
       CONFIG.greetingOptions = ["Hello! (fallback)"];
     }
 
-    // Load fmist.json for wallpapers
+    // Load fmist.json
     try {
-      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/fmist.json", { cache: "no-store" });
-      const data = await res.json();
-      CONFIG.wallpapers = data.wallpapers && data.wallpapers.length > 0 ? [data.wallpapers[0]] : [];
+      const res2 = await fetch("https://jibboshtvfiles.jibbosh.com/config/fmist.json", { cache: "no-store" });
+      const data2 = await res2.json();
+      if (Array.isArray(data2.wallpapers) && data2.wallpapers.length > 0) {
+        CONFIG.wallpapers = [data2.wallpapers[0]];
+      } else {
+        CONFIG.wallpapers = [];
+      }
+      console.log("Loaded fmist.json wallpapers:", CONFIG.wallpapers);
     } catch (err) {
       console.error("Failed to load fmist.json:", err);
       CONFIG.wallpapers = [];
