@@ -52,11 +52,9 @@ window.CONFIG = {
     if (typeof fetchCurrentWeather === "function") fetchCurrentWeather();
 
     setTimeout(() => {
-      // Greeting
       const greetingEl = document.getElementById("greeting-text");
       if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-      // Crawl text loop
       const crawlEl = document.getElementById("crawl-text");
       if (crawlEl && CONFIG.crawlOptions.length > 0) {
         CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
@@ -72,3 +70,67 @@ window.CONFIG = {
             CONFIG.crawl = nextCrawl;
             crawlEl.innerText = CONFIG.crawl;
             crawlEl.style.animation = 'none';
+            crawlEl.offsetHeight;
+            crawlEl.style.animation = '';
+          }
+        }, 7000);
+      }
+
+      const windEl = document.getElementById("cc-wind");
+      if (windEl) {
+        let speed = parseInt(windEl.innerText.replace(/\D/g, '')) || 0;
+        windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
+      }
+
+      const pressureEl = document.getElementById("cc-pressure1");
+      const pressureDecimalEl = document.getElementById("cc-pressure2");
+      const pressureMetricEl = document.getElementById("cc-pressure-metric");
+      if (pressureEl && pressureDecimalEl && pressureMetricEl) {
+        let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
+        pressureEl.innerText = Math.floor(pressure);
+        pressureDecimalEl.innerText = '';
+        pressureMetricEl.innerText = ' hPa';
+      }
+
+      if (CONFIG.wallpapers.length > 0) {
+        document.body.style.backgroundImage = `url('${CONFIG.wallpapers[0]}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+      }
+    }, 700);
+  },
+
+  load: async () => {
+    hideSettings?.();
+
+    try {
+      const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", { cache: "no-store" });
+      const data = await res.json();
+      CONFIG.crawlOptions = data.crawlOptions || [];
+      CONFIG.greetingOptions = data.greetingOptions || [];
+    } catch (err) {
+      console.error("Failed to load i2.json:", err);
+      CONFIG.crawlOptions = ["Failed to load crawl"];
+      CONFIG.greetingOptions = ["Hello! (fallback)"];
+    }
+
+    const wallpaperFileEl = document.getElementById("wallpaper-file-url");
+    if (wallpaperFileEl) {
+      const txtUrl = wallpaperFileEl.textContent.trim();
+      if (txtUrl) {
+        try {
+          const wallpaperRes = await fetch(txtUrl, { cache: "no-store" });
+          const wallpaperUrl = (await wallpaperRes.text()).trim();
+          if (wallpaperUrl) CONFIG.wallpapers = [wallpaperUrl];
+        } catch (err) {
+          console.error("Failed to load wallpaper TXT:", err);
+        }
+      }
+    }
+
+    CONFIG.submit();
+  }
+};
+
+CONFIG.unitField = 'metric';
+CONFIG.load();
