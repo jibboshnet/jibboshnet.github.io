@@ -246,8 +246,6 @@ function setInformation(){
 
 }
 
-const backgroundConfigUrl = "https://jibboshtvfiles.jibbosh.com/config/i2.json";
-
 async function setMainBackground() {
   try {
     const response = await fetch(backgroundConfigUrl);
