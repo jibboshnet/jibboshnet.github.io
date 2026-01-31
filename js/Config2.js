@@ -1,104 +1,129 @@
 window.CONFIG = {
-  // Core options
+  // Default empty until remote loads
   crawlOptions: [],
-  greetingOptions: [],
-  wallpapers: [],
-  crawlIndex: 0,
-  greeting: '',
-  unitField: 'metric',
-  
-  addLocationOption: function() {},
-  addOption: function() {},
+  crawlIndex: 0, // track which crawl we're on
+  crawl: '',
 
-  // Force Fredericton for testing
-  forceQuebecCity: function() {
+  greetingOptions: [],
+  greeting: '',
+
+  language: 'en-US',
+  countryCode: 'CA',
+  units: 'm',
+  unitField: 'metric',
+  loop: true,
+  locationMode: "AIRPORT",
+
+  secrets: {
+    twcAPIKey: 'e1f10a1e78da46f5b10a1e78da96f525'
+  },
+
+  locationOptions: [],
+  options: [],
+
+  addLocationOption: () => {},
+  addOption: () => {},
+
+  wallpapers: [],
+
+  forceQuebecCity: () => {
     const t1 = document.getElementById("infobar-location-text");
     const t2 = document.getElementById("hello-location-text");
 
+    // Only update if text is not already "FREDERICTON"
     if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
     if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
 
+    // Periodically check in case something changes it
     setInterval(() => {
       if (t1 && t1.innerText !== "FREDERICTON") t1.innerText = "FREDERICTON";
       if (t2 && t2.innerText !== "FREDERICTON") t2.innerText = "FREDERICTON";
     }, 500);
   },
 
-  // Display greetings, crawl text, wind, pressure, wallpapers
-  submit: function() {
-    // Random greeting
-    this.greeting = this.greetingOptions[Math.floor(Math.random() * this.greetingOptions.length)] || "";
+  submit: () => {
+    CONFIG.locationMode = "AIRPORT";
+    airportCode = "YFC";
+    zipCode = null;
+    CONFIG.unitField = 'metric';
 
-    // Set greeting
-    const greetingEl = document.getElementById("greeting-text");
-    if (greetingEl) greetingEl.innerText = this.greeting;
+    // Random greeting from loaded options
+    CONFIG.greeting = CONFIG.greetingOptions[Math.floor(Math.random() * CONFIG.greetingOptions.length)] || "";
 
-    // Crawl text loop
-    const crawlEl = document.getElementById("crawl-text");
-    if (crawlEl && this.crawlOptions.length > 0) {
-      // Immediately show first crawl
-      this.crawl = this.crawlOptions[this.crawlIndex];
-      crawlEl.innerText = this.crawl;
+    // Force FREDERICTON immediately
+    CONFIG.forceQuebecCity();
 
-      // Reset animation
-      crawlEl.style.animation = 'none';
-      crawlEl.offsetHeight;
-      crawlEl.style.animation = '';
+    if (typeof fetchCurrentWeather === "function") fetchCurrentWeather();
 
-      setInterval(() => {
-        this.crawlIndex = (this.crawlIndex + 1) % this.crawlOptions.length;
-        const nextCrawl = this.crawlOptions[this.crawlIndex];
-        if (crawlEl.innerText !== nextCrawl) {
-          this.crawl = nextCrawl;
-          crawlEl.innerText = this.crawl;
-          crawlEl.style.animation = 'none';
-          crawlEl.offsetHeight;
-          crawlEl.style.animation = '';
-        }
-      }, 7000);
-    }
+    setTimeout(() => {
+      // Greeting text
+      const greetingEl = document.getElementById("greeting-text");
+      if (greetingEl) greetingEl.innerText = CONFIG.greeting;
 
-    // Wind conversion
-    const windEl = document.getElementById("cc-wind");
-    if (windEl) {
-      let speed = parseInt(windEl.innerText.replace(/\D/g, '')) || 0;
-      windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
-    }
+      // Crawl text loop
+      const crawlEl = document.getElementById("crawl-text");
+      if (crawlEl && CONFIG.crawlOptions.length > 0) {
+        CONFIG.crawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
+        crawlEl.innerText = CONFIG.crawl;
 
-    // Pressure conversion
-    const pressureEl = document.getElementById("cc-pressure1");
-    const pressureDecimalEl = document.getElementById("cc-pressure2");
-    const pressureMetricEl = document.getElementById("cc-pressure-metric");
-    if (pressureEl && pressureDecimalEl && pressureMetricEl) {
-      let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
-      pressureEl.innerText = Math.floor(pressure);
-      pressureDecimalEl.innerText = '';
-      pressureMetricEl.innerText = ' hPa';
-    }
+        // Reset animation
+        crawlEl.style.animation = 'none';
+        crawlEl.offsetHeight;
+        crawlEl.style.animation = '';
 
-    // Wallpaper
-    if (this.wallpapers.length > 0) {
-      document.body.style.backgroundImage = `url('${this.wallpapers[0]}')`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-    }
+        setInterval(() => {
+          CONFIG.crawlIndex = (CONFIG.crawlIndex + 1) % CONFIG.crawlOptions.length;
+          const nextCrawl = CONFIG.crawlOptions[CONFIG.crawlIndex];
+          if (crawlEl.innerText !== nextCrawl) {
+            CONFIG.crawl = nextCrawl;
+            crawlEl.innerText = CONFIG.crawl;
+            crawlEl.style.animation = 'none';
+            crawlEl.offsetHeight;
+            crawlEl.style.animation = '';
+          }
+        }, 7000);
+      }
 
-    // Force Fredericton
-    this.forceQuebecCity();
+      // Convert wind to km/h
+      const windEl = document.getElementById("cc-wind");
+      if (windEl) {
+        let speed = parseInt(windEl.innerText.replace(/\D/g, '')) || 0;
+        windEl.innerText = `N ${Math.round(speed * 1.60934)} km/h`;
+      }
+
+      // Pressure conversion formatting
+      const pressureEl = document.getElementById("cc-pressure1");
+      const pressureDecimalEl = document.getElementById("cc-pressure2");
+      const pressureMetricEl = document.getElementById("cc-pressure-metric");
+      if (pressureEl && pressureDecimalEl && pressureMetricEl) {
+        let pressure = parseFloat(`${pressureEl.innerText}.${pressureDecimalEl.innerText}`) || 1013;
+        pressureEl.innerText = Math.floor(pressure);
+        pressureDecimalEl.innerText = '';
+        pressureMetricEl.innerText = ' hPa';
+      }
+
+      // Set wallpaper if available
+      if (CONFIG.wallpapers.length > 0) {
+        document.body.style.backgroundImage = `url('${CONFIG.wallpapers[0]}')`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+      }
+    }, 700);
   },
 
-  // Load i2.json + wallpaper TXT
-  load: async function() {
+  load: async () => {
+    hideSettings?.();
+
     // 1️⃣ Load i2.json
     try {
       const res = await fetch("https://jibboshtvfiles.jibbosh.com/config/i2.json", { cache: "no-store" });
       const data = await res.json();
-      this.crawlOptions = data.crawlOptions || [];
-      this.greetingOptions = data.greetingOptions || [];
+      CONFIG.crawlOptions = data.crawlOptions || [];
+      CONFIG.greetingOptions = data.greetingOptions || [];
     } catch (err) {
       console.error("Failed to load i2.json:", err);
-      this.crawlOptions = ["Failed to load crawl"];
-      this.greetingOptions = ["Hello! (fallback)"];
+      CONFIG.crawlOptions = ["Failed to load crawl"];
+      CONFIG.greetingOptions = ["Hello! (fallback)"];
     }
 
     // 2️⃣ Load wallpaper TXT from HTML-defined URL
@@ -109,20 +134,19 @@ window.CONFIG = {
         try {
           const wallpaperRes = await fetch(txtUrl, { cache: "no-store" });
           const wallpaperUrl = (await wallpaperRes.text()).trim();
-          if (wallpaperUrl) this.wallpapers = [wallpaperUrl];
+          if (wallpaperUrl) CONFIG.wallpapers = [wallpaperUrl];
         } catch (err) {
           console.error("Failed to load wallpaper TXT:", err);
         }
       }
     }
 
-    // Run everything
-    this.submit();
+    CONFIG.submit();
   }
 };
 
 // Always metric
 CONFIG.unitField = 'metric';
 
-// Start loading everything
+// Start loading
 CONFIG.load();
