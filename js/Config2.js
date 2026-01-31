@@ -6,6 +6,9 @@ window.CONFIG = {
   crawlIndex: 0,
   greeting: '',
   unitField: 'metric',
+  
+  addLocationOption: function() {},
+  addOption: function() {},
 
   // Force Fredericton for testing
   forceQuebecCity: function() {
