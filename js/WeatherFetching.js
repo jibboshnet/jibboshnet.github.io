@@ -236,7 +236,7 @@ function fetchRadarImages(){
     }
   }));
   
-  radarImage.setAttribute("src", "https://kaosfactor.github.io/radar/radar.html");
+  radarImage.setAttribute("src", "https://jibboshnet.github.io/radar/radar.html");
   radarImage.style.width = "1239px"
   radarImage.style.height = "1200px"
   radarImage.style.marginTop = "-670px"
@@ -286,7 +286,7 @@ function fetchRadarImages(){
       }
     }));
     
-   zoomedRadarImage.setAttribute("src", "https://kaosfactor.github.io/radar/radar1.html");
+   zoomedRadarImage.setAttribute("src", "https://jibboshnet.github.io/radar/radar1.html");
    zoomedRadarImage.style.width = "1239px"
    zoomedRadarImage.style.height = "1200px"
    zoomedRadarImage.style.marginTop = "-370px"
