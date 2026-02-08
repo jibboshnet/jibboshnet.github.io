@@ -3,25 +3,17 @@ function guessZipCode(){
   return;
 
   var zipCodeElement = getElement("zip-code-text");
-  // Before filling with auto zip, check and see if
-  // there is already an input
   if(zipCodeElement.value != ""){
     return;
   }
 
-  // always use wunderground API for geolookup
-  // only valid equivalent is GET v3/location/search
-  // TODO: use TWC API GET v3/location/search instead of wunderground geolookup
   fetch(`https://api.wunderground.com/api/${CONFIG.secrets.wundergroundAPIKey}/geolookup/q/autoip.json`)
     .then(function(response) {
-      //check for error
       if (response.status !== 200) {
         console.log("zip code request error");
         return;
       }
       response.json().then(function(data) {
-        // Only fill zip if the user didn't touch
-        // the box while the zip was fetching
         if(zipCodeElement.value == ""){
           zipCodeElement.value = data.location.zip;
         }
@@ -44,17 +36,12 @@ function fetchAlerts(){
         if (data.features.length == 1) {
           alerts[0] = data.features[0].properties.event + '<br>' + data.features[0].properties.description.replace("..."," ").replace(/\*/g, "")
           for(var i = 0; i < data.features.length; i++){
-            /* Take the most important alert message and set it as crawl text
-            This will supply more information i.e. tornado warning coverage */
             alertCrawl = alertCrawl + " " + data.features[i].properties.description.replace("...", " ");
           }
         }
         else {
           for(var i = 0; i < data.features.length; i++){
-            /* Take the most important alert message and set it as crawl text
-            This will supply more information i.e. tornado warning coverage */
             alertCrawl = alertCrawl + " " + data.features[i].properties.description.replace("...", " ");
-
             alerts[i] = data.features[i].properties.event
           }
         }
@@ -76,10 +63,9 @@ function fetchForecast(){
       }
       response.json().then(function(data) {
         let forecasts = data.forecasts
-        // narratives
-        isDay = forecasts[0].day; // If the API spits out a day forecast, use the day timings
+        isDay = forecasts[0].day;
         let ns = []
-        ns.push(forecasts[0].day || forecasts[0].night); // there must be a day forecast so if the API doesn't provide one, just make it the night one. It won't show anyway.
+        ns.push(forecasts[0].day || forecasts[0].night);
         ns.push(forecasts[0].night);
         ns.push(forecasts[1].day);
         ns.push(forecasts[1].night);
@@ -90,14 +76,11 @@ function fetchForecast(){
           forecastNarrative[i] = n.narrative
           forecastPrecip[i] = `${n.pop}% Chance<br/> of ${n.precip_type.charAt(0).toUpperCase() + n.precip_type.substr(1).toLowerCase()}`
         }
-        // 7 day outlook
         for (var i = 0; i < 7; i++) {
           let fc = forecasts[i+1]
           outlookHigh[i] = fc.max_temp
           outlookLow[i] = fc.min_temp
           outlookCondition[i] = (fc.day ? fc.day : fc.night).phrase_32char.split(' ').join('<br/>')
-          // thunderstorm doesn't fit in the 7 day outlook boxes
-          // so I multilined it similar to that of the original
           outlookCondition[i] = outlookCondition[i].replace("Thunderstorm", "Thunder</br>storm");
           outlookIcon[i] = (fc.day ? fc.day : fc.night).icon_code
         }
@@ -107,13 +90,10 @@ function fetchForecast(){
 }
 
 function fetchCurrentWeather(){
-
-  //Let's check what we're dealing with
   let location = "";
   console.log(CONFIG.locationMode)
   if(CONFIG.locationMode=="POSTAL") {location=`postalKey=${zipCode}:${CONFIG.countryCode}`}
   else if (CONFIG.locationMode=="AIRPORT") {
-    //Determine whether this is an IATA or ICAO code
     let airportCodeLength=airportCode.length;
     if(airportCodeLength==3){location=`iataCode=${airportCode}`}
     else if (airportCodeLength==4){location=`icaoCode=${airportCode}`}
@@ -128,7 +108,6 @@ function fetchCurrentWeather(){
     console.error("Unknown what to use for location")
     return;
   }
-  
 
   fetch(`https://api.weather.com/v3/location/point?${location}&language=${CONFIG.language}&format=json&apiKey=${CONFIG.secrets.twcAPIKey}`)
       .then(function (response) {
@@ -144,17 +123,14 @@ function fetchCurrentWeather(){
           }
       response.json().then(function(data) {
         try {
-          // which LOCALE?!
-          //Not sure about the acuracy of this. Remove this if necessary
           if(CONFIG.locationMode=="AIRPORT"){
             cityName = data.location.airportName
-            .toUpperCase() //Airport names are long
-            .replace("INTERNATIONAL","INTL.") //If a city name is too long, info bar breaks
-            .replace("AIRPORT","") //This is an attempt to fix it
+            .toUpperCase()
+            .replace("INTERNATIONAL","INTL.")
+            .replace("AIRPORT","")
             .trim();
             console.log(cityName);
           } else {
-            //Shouldn't City Name be the field City Name, not Display Name?
             cityName = data.location.city.toUpperCase();
           }
           latitude = data.location.latitude;
@@ -172,7 +148,6 @@ function fetchCurrentWeather(){
               return;
             }
             response.json().then(function(data) {
-              // cityName is set in the above fetch call and not this one
               let unit = data.observation[CONFIG.unitField];
               currentTemperature = Math.round(unit.temp);
               currentCondition = data.observation.phrase_32char;
@@ -184,116 +159,104 @@ function fetchCurrentWeather(){
               dewPoint = unit.dewpt
               pressure = unit.altimeter.toPrecision(4);
               let ptendCode = data.observation.ptend_code
-              pressureTrend = (ptendCode == 1 || ptendCode == 3) ? '▲' : ptendCode == 0 ? '' : '▼'; // if ptendCode == 1 or 3 (rising/rising rapidly) up arrow else its steady then nothing else (falling (rapidly)) down arrow
+              pressureTrend = (ptendCode == 1 || ptendCode == 3) ? '▲' : ptendCode == 0 ? '' : '▼';
               currentIcon = data.observation.icon_code
               fetchAlerts();
             });
           });
       })
     });
-
-
 }
 
-function fetchRadarImages(){
-  radarImage = document.createElement("iframe");
-  radarImage.onerror = function () {
-    getElement('radar-container').style.display = 'none';
-  }
+function fetchRadarImages() {
+  mapboxgl.accessToken = "pk.eyJ1Ijoid2VhdGhlciIsImEiOiJjbHAxbHNjdncwaDhvMmptcno1ZTdqNDJ0In0.iywE3NefjboFg11a11ON0Q"; // Replace with your Mapbox token
 
-  mapSettings = btoa(JSON.stringify({
-    "agenda": {
-      "id": "weather",
-      "center": [longitude, latitude],
-      "location": null,
-      "zoom": 5
-    },
-    "animating": true,
-    "base": "standard",
-    "artcc": false,
-    "county": false,
-    "cwa": false,
-    "rfc": false,
-    "state": false,
-    "menu": false,
-    "shortFusedOnly": false,
-    "opacity": {
-      "alerts": 0.0,
-      "local": 0.0,
-      "localStations": 0.0,
-      "national": 0.6
-    }
-  }));
-  
-  radarImage.setAttribute("src", "https://radar.weather.gov/?settings=v1_" + mapSettings);
-  radarImage.style.width = "1239px"
-  radarImage.style.height = "1200px"
-  radarImage.style.marginTop = "-670px"
-  radarImage.style.overflow = "hidden"
+  map = new mapboxgl.Map({
+    container: "radar-container",
+    style: "mapbox://styles/mapbox/satellite-v9",
+    center: [longitude, latitude],
+    zoom: 8,
+    interactive: false
+  });
 
+  fetch(`https://api.weather.com/v3/TileServer/series/productSet/PPAcore?filter=twcRadarMosaic&apiKey=${CONFIG.secrets.twcAPIKey}`)
+    .then(r => r.json())
+    .then(data => {
+      timestamps = data.seriesInfo.series
+        .sort((a, b) => b.ts - a.ts)
+        .slice(0, CONFIG.radarImagesFetchAmount)
+        .reverse();
 
+      timestamps.forEach((t, i) => {
+        map.addSource(`radarlayer_${t.ts}`, {
+          type: "raster",
+          tiles: [`https://api.weather.com/v3/TileServer/tile/twcRadarMosaic?ts=${t.ts}&apiKey=${CONFIG.secrets.twcAPIKey}`],
+          tileSize: 512
+        });
 
+        map.addLayer({
+          id: `radarlayer_${t.ts}`,
+          type: "raster",
+          source: `radarlayer_${t.ts}`,
+          layout: { visibility: i === 0 ? "visible" : "none" },
+          paint: { "raster-opacity": 1, "raster-brightness-max": 0.9 }
+        });
+      });
 
-  //radarImage.setAttribute("src", "https://radar.weather.gov/?settings=v1_" + mapSettings);
-  //radarImage.style.width = "1230px"
-  //radarImage.style.height = "740px"
-  //radarImage.style.marginTop = "-220px"
-  //radarImage.style.overflow = "hidden"
-  
-  if(alertsActive){
-    zoomedRadarImage = new Image();
-    zoomedRadarImage.onerror = function () {
-      getElement('zoomed-radar-container').style.display = 'none';
-    }
-
-    zoomedRadarImage = document.createElement("iframe");
-    zoomedRadarImage.onerror = function () {
-      getElement('zoomed-radar-container').style.display = 'none';
-    }
-  
-    mapSettings = btoa(JSON.stringify({
-      "agenda": {
-        "id": "weather",
-        "center": [longitude, latitude],
-        "location": null,
-        "zoom": 10
-      },
-      "animating": true,
-      "base": "standard",
-      "artcc": false,
-      "county": false,
-      "cwa": false,
-      "rfc": false,
-      "state": false,
-      "menu": false,
-      "shortFusedOnly": false,
-      "opacity": {
-        "alerts": 0.0,
-        "local": 0.0,
-        "localStations": 0.0,
-        "national": 0.6
-      }
-    }));
-    
-   zoomedRadarImage.setAttribute("src", "https://kaosfactor.github.io/radar/radar1.html");
-   zoomedRadarImage.style.width = "1239px"
-   zoomedRadarImage.style.height = "1200px"
-   zoomedRadarImage.style.marginTop = "-370px"
-   zoomedRadarImage.style.overflow = "hidden"
-
-
-
-    //zoomedRadarImage.setAttribute("src", "https://radar.weather.gov/?settings=v1_" + mapSettings);
-    //zoomedRadarImage.style.width = "1230px"
-    //zoomedRadarImage.style.height = "740px"
-    //zoomedRadarImage.style.marginTop = "-220px"
-    //zoomedRadarImage.style.overflow = "hidden"
-
-  }
-
-  
-  window.location.href = "https://radar.weather.gov/?settings=v1_"+mapSettings;
-
+      initRadarCleanGraphics();
+      startAnimateRadar(timestamps.length);
+    });
 }
 
+function initRadarCleanGraphics() {
+  const timeStr = new Date(timestamps[0].ts * 1000).toLocaleTimeString("en-US", {
+    timeZone: CONFIG.timezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).replace(" PM", "p").replace(" AM", "a");
 
+  document.getElementById("radar-time").textContent = timeStr;
+
+  for (let i = 0; i < CONFIG.radarImagesFetchAmount; i++) {
+    map.setLayoutProperty(
+      `radarlayer_${timestamps[i].ts}`,
+      "visibility",
+      i === 0 ? "visible" : "none"
+    );
+  }
+}
+
+function startAnimateRadar(total) {
+  animateRadar(0, total);
+}
+
+function animateRadar(startIndex, total) {
+  let current = -1;
+  const interval = setInterval(() => {
+    current++;
+    if (current === CONFIG.radarImagesFetchAmount) {
+      clearInterval(interval);
+      if (startIndex + 1 > total - 1) return;
+      setTimeout(() => animateRadar(startIndex + 1, total), 500);
+      return;
+    }
+
+    timestamps.forEach((t, i) => {
+      map.setLayoutProperty(
+        `radarlayer_${t.ts}`,
+        "visibility",
+        i === current ? "visible" : "none"
+      );
+    });
+
+    const timeStr = new Date(timestamps[current].ts * 1000).toLocaleTimeString("en-US", {
+      timeZone: CONFIG.timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    }).replace(" PM", "p").replace(" AM", "a");
+
+    document.getElementById("radar-time").textContent = timeStr;
+  }, 80);
+}
