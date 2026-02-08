@@ -1,31 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
-
 <head>
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-
-
+<meta charset="UTF-8">
+<title>Radar Map</title>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.22.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.22.0/mapbox-gl.css" rel="stylesheet" />
 <style>
-html, body, #wrapper {
-       height:100%;
-       width: 100%;
-       margin: 0;
-       padding: 0;
-       border: 0;
-    }
-    #wrapper td {
-       vertical-align: middle;
-       text-align: center;
-    }
+html, body, #wrapper, #radar-container {
+   height:100%;
+   width: 100%;
+   margin: 0;
+   padding: 0;
+   border: 0;
+}
+#wrapper td {
+   vertical-align: middle;
+   text-align: center;
+}
 </style>
 </head>
 <body>
-   <table id="wrapper">
-      <tr>
-         <td><img src="https://radar.weather.gov/ridge/standard/NORTHEAST_loop.gif" style="height:100%; width: 100%; " alt="" /></td>
-      </tr>
-   </table>
+<table id="wrapper">
+  <tr>
+    <td>
+      <div id="radar-container"></div>
+    </td>
+  </tr>
+</table>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoicGV5dG9ud2R5bSIsImEiOiJjbGx0NHpmMHYwenJtM2tsaXRmaHF3ZHBsIn0.TlyGx6b0mqYSbzZUFjIQmg';
+const latitude = 45.9636;
+const longitude = -66.6431;
+
+const map = new mapboxgl.Map({
+    container: 'radar-container',
+    style: 'mapbox://styles/mapbox/satellite-v9',
+    center: [longitude, latitude],
+    zoom: 5,
+    interactive: false
+});
+
+// Add TWC radar tiles
+const radarTilesUrl = "https://api.weather.com/v3/TileServer/tile/twcRadarMosaic?ts={timestamp}&apiKey=e1f10a1e78da46f5b10a1e78da96f525";
+
+map.on('load', () => {
+    const timestamps = [Date.now() / 1000]; // You could fetch multiple timestamps for animation
+
+    timestamps.forEach((ts, i) => {
+        map.addSource('radarlayer_' + ts, {
+            type: 'raster',
+            tiles: [radarTilesUrl.replace('{timestamp}', ts)],
+            tileSize: 256
+        });
+
+        map.addLayer({
+            id: 'radarlayer_' + ts,
+            type: 'raster',
+            source: 'radarlayer_' + ts,
+            layout: { visibility: i === 0 ? 'visible' : 'none' },
+            paint: { 'raster-opacity': 1, 'raster-brightness-max': 0.9 }
+        });
+    });
+});
+</script>
 </body>
 </html>
-
