@@ -23,11 +23,11 @@
   float: left;
 }
 
-#infobar-time-container{
+#infobar-time-container {
   background-color: rgba(0, 0, 0, 0.25);
-  padding: 0 18px;          /* add left/right space */
-  box-sizing: border-box;   /* keeps overall width stable if you set one elsewhere */
+  padding: 0 25px 0 25px; /* left/right: 25px (up from 18px); top/bottom: 0 */
 }
+
 
 
 .infobar-item-container{
