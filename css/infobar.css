@@ -25,7 +25,10 @@
 
 #infobar-time-container{
   background-color: rgba(0, 0, 0, 0.25);
+  padding: 0 18px;          /* add left/right space */
+  box-sizing: border-box;   /* keeps overall width stable if you set one elsewhere */
 }
+
 
 .infobar-item-container{
   position: relative;
