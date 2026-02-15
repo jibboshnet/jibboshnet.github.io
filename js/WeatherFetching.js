@@ -236,7 +236,7 @@ function fetchRadarImages(){
     }
   }));
   
-  radarImage.setAttribute("src", "https://jibboshtvfiles.jibbosh.com/config/radar.html#7/45.965/-66.645");
+  radarImage.setAttribute("src", "https://jibboshtvfiles.jibbosh.com/config/radar.html");
   radarImage.style.width = "1239px"
   radarImage.style.height = "1200px"
   radarImage.style.marginTop = "-670px"
