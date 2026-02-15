@@ -1,11 +1,3 @@
-#crawler-container {
-    visibility: hidden; /* Keeps the space but hides the content */
-}
-
-#timeline-container {
-  display: none;
-}
-
 html, body {
   overflow: auto;
 
