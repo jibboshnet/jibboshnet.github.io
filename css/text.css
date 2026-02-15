@@ -1,11 +1,11 @@
 @font-face {
   font-family: akkoThin;
-  src: url(https://jibboshtvfiles.jibbosh.com/fonts/Roboto-Thin.ttf);
+  src: url(/fonts/akkopro-thin.ttf);
 }
 
 @font-face {
   font-family: akkoLight;
-  src: url(https://jibboshtvfiles.jibbosh.com/fonts/Roboto-Light.ttf);
+  src: url(/fonts/akkopro-light.ttf);
 }
 
 .regular-text{
