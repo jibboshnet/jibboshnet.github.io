@@ -1,11 +1,11 @@
 @font-face {
   font-family: akkoThin;
-  src: url(../fonts/akkopro-thin.otf);
+  src: url(https://github.com/opencontainers/web/raw/refs/heads/master/themes/material-design/static/font/roboto/Roboto-Light.ttf);
 }
 
 @font-face {
   font-family: akkoLight;
-  src: url(../fonts/akkopro-light.ttf);
+  src: url(https://raw.githubusercontent.com/opencontainers/web/refs/heads/master/themes/material-design/static/font/roboto/Roboto-Light.ttf);
 }
 
 .regular-text{
