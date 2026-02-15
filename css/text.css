@@ -1,11 +1,11 @@
 @font-face {
   font-family: akkoThin;
-  src: url(/fonts/akkopro-thin.ttf);
+  src: url(../fonts/akkopro-thin.otf);
 }
 
 @font-face {
   font-family: akkoLight;
-  src: url(/fonts/akkopro-light.ttf);
+  src: url(../fonts/akkopro-light.ttf);
 }
 
 .regular-text{
